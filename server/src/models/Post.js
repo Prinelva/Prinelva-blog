@@ -1,0 +1,5 @@
+import mongoose from 'mongoose';
+const mediaSchema=new mongoose.Schema({type:{type:String,enum:['audio','video'],required:true},url:{type:String,required:true},downloadUrl:{type:String,required:true},name:{type:String,required:true},mimeType:{type:String,required:true},size:{type:Number,required:true},sourceUrl:String,license:String},{_id:false});
+const schema=new mongoose.Schema({title:{type:String,required:true,trim:true},slug:{type:String,required:true,unique:true,index:true},content:{type:String,required:true},excerpt:String,coverImage:String,media:{type:[mediaSchema],default:[]},tags:[String],category:{type:mongoose.Schema.Types.ObjectId,ref:'Category'},author:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},status:{type:String,enum:['draft','published'],default:'draft',index:true},featured:{type:Boolean,default:false},views:{type:Number,default:0,index:true},publishedAt:Date,newsletterSentAt:Date,newsletterSendingAt:Date},{timestamps:true});
+schema.index({title:'text',content:'text',tags:'text'});
+export default mongoose.model('Post',schema);

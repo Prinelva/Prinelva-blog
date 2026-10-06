@@ -1,0 +1,2 @@
+import 'dotenv/config';import {connectDB} from '../src/config/db.js';import Category from '../src/models/Category.js';
+await connectDB();await Category.deleteMany({});await Category.insertMany([{name:'Technology',slug:'technology',description:'Technology and software development.'},{name:'CSS',slug:'css',description:'CSS, UI and responsive design.'},{name:'React',slug:'react',description:'React and frontend engineering.'},{name:'Node.js',slug:'nodejs',description:'Node.js, Express and backend development.'}]);console.log('Categories seeded');process.exit();
