@@ -11,26 +11,21 @@ export default function Layout(){
     const servicesUrl=import.meta.env.VITE_SERVICES_URL?.trim();
     const marketplaceUrl=import.meta.env.VITE_MARKETPLACE_URL?.trim();
     const [open,setOpen]=useState(false);
-const [categories,setCategories]=useState([]);
-const [categoryError,setCategoryError]=useState('');
-useEffect(()=>{api.get('/categories')
-    .then(response=>setCategories(response.data.categories))
-    .catch(()=>setCategoryError('Categories could not be loaded. Refresh the page to try again.'))},[]);
-const browseCategories=categories
-    .filter(category=>!['technologies','css','sports','nodejs','react'].includes(category.slug)
-        &&category.name.toLowerCase()!=='react')
-    .concat([
-        ...(!categories.some(category=>category.slug==='sports')
-            ?[{_id:'sports',name:'Sports',slug:'sports'}]:[]),
-        ...(!categories.some(category=>category.slug==='fashion')
-            ?[{_id:'fashion',name:'Fashion',slug:'fashion'}]:[]),
-        ...(!categories.some(category=>category.slug==='culture')
-            ?[{_id:'culture',name:'Culture',slug:'culture'}]:[]),
-        ...(!categories.some(category=>category.slug==='job')
-            ?[{_id:'job',name:'Job',slug:'job'}]:[]),
-    ])
-    .sort((a,b)=>a.name.localeCompare(b.name));
-return <><header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90
+    const [categories,setCategories]=useState([]);
+    const [categoryError,setCategoryError]=useState('');
+    useEffect(()=>{api.get('/categories')
+        .then(response=>setCategories(response.data.categories))
+        .catch(()=>setCategoryError('Categories could not be loaded. Refresh the page to try again.'))},[]);
+    const defaultCategories=[
+        {_id:'sports',name:'Sports',slug:'sports'},
+        {_id:'fashion',name:'Fashion',slug:'fashion'},
+        {_id:'culture',name:'Culture',slug:'culture'},
+        {_id:'job',name:'Job',slug:'job'},
+    ];
+    const browseCategories=[...categories, ...defaultCategories]
+        .filter((category, index, list) => category && category.slug && category.name && list.findIndex(item => item?.slug === category.slug) === index)
+        .sort((a,b)=>a.name.localeCompare(b.name));
+    return <><header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90
  backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
     <div className="container-page flex h-16 items-center justify-between">
         <Link to="/" onClick={()=>setOpen(false)} aria-label="Prinelva Blog home"
@@ -63,16 +58,16 @@ return <><header className="sticky top-0 z-50 border-b border-slate-200/80 bg-wh
 
 
 
-     
+      
 
-   
+    
 
         
          <nav aria-label="Main navigation" className={`${open?'flex':'hidden'} 
          absolute left-0 top-16 w-full flex-col gap-4 border-b
           bg-white p-4 dark:border-slate-800 dark:bg-slate-950 
           md:static md:flex md:w-auto
-           md:flex-row md:items-center md:border-0 md:bg-transparent md:p-0`}>
+            md:flex-row md:items-center md:border-0 md:bg-transparent md:p-0`}>
             {[['/','Home'],['/search','Search']]
             .map(([to,t])=><Link key={to} onClick={()=>setOpen(false)} 
             className="text-2xl font-black tracking-tight text-slate-950 transition-colors hover:text-indigo-600 dark:text-white"
@@ -96,22 +91,42 @@ return <><header className="sticky top-0 z-50 border-b border-slate-200/80 bg-wh
             <div className="flex items-center gap-2">
                 <button aria-label="theme" onClick={()=>setDark(!dark)} 
                 className="rounded-lg p-2 hover:bg-slate-100 
-                dark:hover:bg-slate-800">{dark?<Sun size={19}/>:<Moon size={19}/>}
+                dark:hover:bg-slate-800">{dark?<Sun size={19}/>:<Moon size={19}/>} 
                 </button><button aria-label="Toggle navigation" aria-expanded={open} 
                 className="md:hidden" onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}
                 </button></div></div>
 <nav aria-label="Browse categories" className="border-t border-indigo-800 
-bg-gradient-to-r from-indigo-950 via-indigo-900 to-slate-900 shadow-sm">
+ bg-gradient-to-r from-indigo-950 via-indigo-900 to-slate-900 shadow-sm">
     <div className="container-page flex justify-start gap-5 overflow-x-auto py-3 text-sm whitespace-nowrap md:justify-center">
         {browseCategories.map(category=><Link key={
-            category._id} onClick={()=>setOpen(false)}
+            category._id || category.slug} onClick={()=>setOpen(false)}
             className="shrink-0 font-medium text-indigo-100 transition-colors hover:text-white"
             to={`/category/${category.slug}`}>{category.name}</Link>)}
         {!categories.length&&!categoryError&&
         <span role="status" className="shrink-0 text-indigo-100">Loading categories...</span>
         }
     </div>
-</nav>{categoryError&&<p role="status" className="container-page py-2 text-xs text-red-600 dark:text-red-400">{categoryError}</p>}</header><main><Outlet/></main><footer className="mt-16 border-t border-slate-200 py-10 dark:border-slate-800"><div className="container-page grid gap-8 md:grid-cols-3"><div><b>PrinelvaBlog</b><p className="mt-2 text-sm text-slate-500">A modern full-stack developer blog.</p></div><Newsletter/><div><p className="text-sm text-slate-500">© {new Date().getFullYear()} PrinelvaBlog</p></div></div></footer></>}
+</nav>{categoryError&&<p role="status" className="container-page py-2 text-xs text-red-600 dark:text-red-400">{categoryError}</p>}</header><main><Outlet/></main><footer className="mt-16 border-t border-slate-200 bg-slate-50 px-4 py-8 dark:border-slate-800 dark:bg-slate-950">
+    <div className="container-page grid gap-8 md:grid-cols-3">
+        <div>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white">Prinelva Blog</h3>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Insights on web development, digital creativity, design, and modern technology.</p>
+        </div>
+        <div>
+            <h4 className="font-bold text-slate-900 dark:text-white">Explore</h4>
+            <div className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                <Link className="block hover:text-indigo-600" to="/">Home</Link>
+                <Link className="block hover:text-indigo-600" to="/search">Search</Link>
+                <Link className="block hover:text-indigo-600" to="/category/culture">Culture</Link>
+            </div>
+        </div>
+        <div>
+            <Newsletter/>
+        </div>
+    </div>
+</footer></>;
+}
+
 function Newsletter(){const [email,setEmail]=useState('');
     const [msg,setMsg]=useState('');
     async function submit(e){e.preventDefault();
