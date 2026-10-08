@@ -5,6 +5,30 @@ import {useTheme} from '../context/ThemeContext';
 import {useAuth} from '../context/AuthContext';
 import {api} from '../lib/api';
 import {useEffect,useState} from 'react';
+
+function getCategoryLoadError(error){
+    const status=error?.response?.status;
+    if(error?.message==='The categories API returned an unexpected response.'){
+        return 'The API response did not include a categories list. Check that VITE_API_URL points to the correct API service.';
+    }
+    if(error?.message?.includes('API returned HTML instead of JSON')){
+        return 'The API URL returned a website page instead of JSON. Check VITE_API_URL and the /api proxy configuration.';
+    }
+    if(status===403){
+        return 'The API rejected this website origin. Check that the API service CLIENT_URL matches the website URL.';
+    }
+    if(status===404){
+        return 'The categories API endpoint was not found. Check that VITE_API_URL points to the API service and includes /api.';
+    }
+    if(status>=500){
+        return `The API failed to load categories (HTTP ${status}). Check the API service logs.`;
+    }
+    if(status){
+        return `The API could not load categories (HTTP ${status}).`;
+    }
+    return 'The API could not be reached. Check VITE_API_URL, the /api proxy, and the browser Network tab.';
+}
+
 export default function Layout(){
     const {dark,setDark}=useTheme();
     const {user,logout}=useAuth();
@@ -13,9 +37,24 @@ export default function Layout(){
     const [open,setOpen]=useState(false);
     const [categories,setCategories]=useState([]);
     const [categoryError,setCategoryError]=useState('');
-    useEffect(()=>{api.get('/categories')
-        .then(response=>setCategories(response.data.categories))
-        .catch(()=>setCategoryError('Categories could not be loaded. Refresh the page to try again.'))},[]);
+    const [categoryRetry,setCategoryRetry]=useState(0);
+    useEffect(()=>{
+        let active=true;
+        api.get('/categories')
+            .then(response=>{
+                if(!Array.isArray(response.data?.categories)){
+                    throw new Error('The categories API returned an unexpected response.');
+                }
+                if(active)setCategories(response.data.categories);
+            })
+            .catch(error=>{
+                if(!active)return;
+                const message=getCategoryLoadError(error);
+                console.error('Category request failed:',message);
+                setCategoryError(message);
+            });
+        return()=>{active=false};
+    },[categoryRetry]);
     const defaultCategories=[
         {_id:'sports',name:'Sports',slug:'sports'},
         {_id:'fashion',name:'Fashion',slug:'fashion'},
@@ -106,7 +145,7 @@ export default function Layout(){
         <span role="status" className="shrink-0 text-indigo-100">Loading categories...</span>
         }
     </div>
-</nav>{categoryError&&<p role="status" className="container-page py-2 text-xs text-red-600 dark:text-red-400">{categoryError}</p>}</header><main><Outlet/></main><footer className="mt-16 border-t border-slate-200 bg-slate-50 px-4 py-8 dark:border-slate-800 dark:bg-slate-950">
+</nav>{categoryError&&<div role="alert" className="container-page flex flex-wrap items-center gap-3 py-2 text-xs text-red-600 dark:text-red-400"><span>{categoryError}</span><button type="button" className="font-semibold underline" onClick={()=>{setCategoryError('');setCategoryRetry(retry=>retry+1)}}>Retry</button></div>}</header><main><Outlet/></main><footer className="mt-16 border-t border-slate-200 bg-slate-50 px-4 py-8 dark:border-slate-800 dark:bg-slate-950">
     <div className="container-page grid gap-8 md:grid-cols-3">
         <div>
             <h3 className="text-lg font-black text-slate-900 dark:text-white">Prinelva Blog</h3>
@@ -126,7 +165,6 @@ export default function Layout(){
     </div>
 </footer></>;
 }
-
 function Newsletter(){const [email,setEmail]=useState('');
     const [msg,setMsg]=useState('');
     async function submit(e){e.preventDefault();
