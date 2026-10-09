@@ -1,24 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import PostTimestamp from './PostTimestamp';
-
-const categoryCovers={
-    education:'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=85',
-    politics:'/media/categories/politics.png',
-    technologies:'/media/categories/technologies.svg',
-    religion:'/media/categories/religion.png',
-    arts:'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&q=85',
-    music:'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=85',
-    videos:'https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?auto=format&fit=crop&w=1200&q=85',
-    business:'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=85',
-    news:'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=1200&q=85',
-    technology:'/media/categories/technology.svg',
-    css:'/media/categories/css.svg',
-    sports:'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1200&q=80',
-    fashion:'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=85',
-    react:'/media/categories/react.svg',
-    nodejs:'/media/categories/nodejs.svg',
-};
+import {categoryCovers} from '../lib/categoryCovers';
 
 export default function PostCard({ post }) {
     const categorySlug=post.category?.slug?.toLowerCase();
