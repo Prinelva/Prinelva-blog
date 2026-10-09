@@ -16,7 +16,13 @@ export async function list(req,res){
     const limit=Number.isInteger(limitValue)&&limitValue>=1&&limitValue<=100?limitValue:10;
     const skip=(page-1)*limit;
     const query={status:'published'};
-    if(category)query.category=category;
+    if(typeof category==='string'&&category){
+        const selectedCategory=await Category.findOne({slug:category}).select('_id');
+        if(!selectedCategory){
+            return res.json({posts:[],pagination:{page,limit,total:0,pages:0}});
+        }
+        query.category=selectedCategory._id;
+    }
     if(search)query.$text={$search:search};
     if(tag)query.tags=tag;
     if(featured)query.featured=true;
