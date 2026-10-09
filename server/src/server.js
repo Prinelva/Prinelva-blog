@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import {connectDB} from './config/db.js';
+import {ensureDefaultCategories} from './config/defaultCategories.js';
 import routes from './routes/index.js';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
@@ -19,10 +20,13 @@ if (process.env.TRUST_PROXY) {
 }
 
 if (process.env.NODE_ENV === 'production') {
-    const required = ['MONGO_URI', 'JWT_SECRET', 'CLIENT_URL', 'API_PUBLIC_URL'];
+    const required = ['JWT_SECRET', 'CLIENT_URL', 'API_PUBLIC_URL'];
     const missing = required.filter((key) => !process.env[key]);
     if (missing.length) {
         throw new Error(`Missing required production configuration: ${missing.join(', ')}`);
+    }
+    if (!process.env.MONGO_URI && !process.env.MONGO_URL) {
+        throw new Error('Missing required production configuration: set MONGO_URI or MONGO_URL');
     }
     if (process.env.JWT_SECRET.length < 32 || process.env.JWT_SECRET === 'replace_with_a_long_random_secret') {
         throw new Error('JWT_SECRET must be a unique random value of at least 32 characters in production');
@@ -79,6 +83,8 @@ app.use((err, req, res, next) => {
 
 connectDB()
     .then(async () => {
+        await ensureDefaultCategories();
+
         if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
             const exists = await User.findOne({ email: process.env.ADMIN_EMAIL });
             if (!exists) {

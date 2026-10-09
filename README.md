@@ -45,7 +45,8 @@ Configure `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SEC
 ## Production deployment checklist
 
 - Use HTTPS for both the public site and API.
-- Set `NODE_ENV=production`, `MONGO_URI`, `JWT_SECRET`, `CLIENT_URL`, and `API_PUBLIC_URL`. Production startup rejects a missing or default/short JWT secret.
+- Set `NODE_ENV=production`, either `MONGO_URI` or `MONGO_URL`, `JWT_SECRET`, `CLIENT_URL`, and `API_PUBLIC_URL`. Production startup rejects a missing MongoDB URI or a missing/default/short JWT secret.
+- On startup, the API safely inserts any missing standard category records. It does not delete categories, modify existing category details, or create sample posts.
 - Generate a unique random JWT secret (at least 32 characters); never reuse a development value.
 - Set `CLIENT_URL` to the exact public web origin. Multiple trusted origins can be comma-separated.
 - Set `API_PUBLIC_URL` to the public API origin for sitemap and robots output.
