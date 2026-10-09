@@ -46,6 +46,10 @@ export function Register(){
             <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
         </div>
         <GoogleSignIn onSignedIn={()=>navigate('/')}/>
+        <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-300">
+            Already have an account?{' '}
+            <Link className="font-semibold text-indigo-600 hover:underline" to="/login">Log in</Link>
+        </p>
     </div>;
 }
 
