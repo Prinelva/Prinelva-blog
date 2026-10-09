@@ -43,7 +43,22 @@ export async function getBySlug(req,res){
     if(!p)return res.status(404).json({message:'Post not found'});
     p.views=(p.views||0)+1;
     await p.save();
-    res.json({post:p})
+    const relatedQuery={status:'published',_id:{$ne:p._id}};
+    if(p.category)relatedQuery.category=p.category._id;
+    const [comments,related,likes,user]=await Promise.all([
+        Comment.find({post:p._id}).populate('user','name').sort({createdAt:1}),
+        Post.find(relatedQuery).populate(populate).sort({publishedAt:-1}).limit(3),
+        User.countDocuments({likedPosts:p._id}),
+        req.user?.id?User.findById(req.user.id).select('bookmarks likedPosts'):null
+    ]);
+    res.json({
+        post:p,
+        comments,
+        related,
+        likes,
+        liked:Boolean(user?.likedPosts.some(id=>id.equals(p._id))),
+        bookmarked:Boolean(user?.bookmarks.some(id=>id.equals(p._id)))
+    })
 }
 
 function announcePostInBackground(post){

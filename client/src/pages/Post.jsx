@@ -59,6 +59,8 @@ export default function Post(){
             {loadError&&<Link className="ml-2 text-indigo-600 underline" to="/">Return home</Link>}
         </div>;
         const p=data.post;
+        const comments=Array.isArray(data.comments)?data.comments:[];
+        const related=Array.isArray(data.related)?data.related:[];
         const words=p.content.replace(/<[^>]+>/g,' ').trim().split(/\s+/).filter(Boolean).length;
         const read=Math.max(1,Math.ceil(words/200));
         async function act(path){if(!user){
@@ -121,7 +123,7 @@ export default function Post(){
             try{
                 setPosting(true);
                 const r=await api.post('/comments',{post:p._id,content:comment.trim()});
-                setData(current=>({...current,comments:[...current.comments,r.data.comment]}));
+                setData(current=>({...current,comments:[...(current.comments??[]),r.data.comment]}));
                 setComment('');
                 setCommentNotice('Your comment was posted.');
             }catch(err){
@@ -141,7 +143,7 @@ export default function Post(){
                     parent,
                     content,
                 });
-                setData(current=>({...current,comments:[...current.comments,response.data.comment]}));
+                setData(current=>({...current,comments:[...(current.comments??[]),response.data.comment]}));
                 setReplyContent('');
                 setReplyTo(null);
             }catch(err){
@@ -195,7 +197,7 @@ export default function Post(){
     `https://twitter.com/intent/tweet?text=${encodeURIComponent(p.title)}&url=${
         encodeURIComponent(window.location.href)}`}>Twitter/X</a></div>
         <a href="#comments" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:underline">
-            <MessageCircle size={17}/>Comments ({data.comments.length})
+            <MessageCircle size={17}/>Comments ({comments.length})
         </a>
         {actionNotice&&<p role="status" className="mb-5 text-sm text-slate-600 dark:text-slate-300">{actionNotice}{!user&&actionNotice.includes('log in')&&<> <Link className="text-indigo-600 underline" to="/login">Log in</Link></>}</p>}
             {p.coverImage&&
@@ -249,8 +251,8 @@ export default function Post(){
       </div>}
     {commentNotice&&<p role="status" className="mt-3 text-sm text-slate-600 dark:text-slate-300">{commentNotice}</p>}
     {replyNotice&&<p role="alert" className="mt-3 text-sm text-red-600">{replyNotice}</p>}
-    <div className="mt-6 space-y-4">{data.comments.filter(c=>!c.parent).map(c=>
-        <CommentThread key={c._id} comment={c} comments={data.comments} depth={0}
+    <div className="mt-6 space-y-4">{comments.filter(c=>!c.parent).map(c=>
+        <CommentThread key={c._id} comment={c} comments={comments} depth={0}
             user={user} replyTo={replyTo} setReplyTo={setReplyTo}
             replyContent={replyContent} setReplyContent={setReplyContent}
             postingReply={postingReply} onReply={submitReply}
@@ -260,7 +262,7 @@ export default function Post(){
     <section className="container-page pb-12">
         <h2 className="mb-5 text-2xl font-black">Related posts</h2>
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {data.related.map(x=><PostCard key={x._id} post={x}/>)}
+        {related.map(x=><PostCard key={x._id} post={x}/>)}
         </div>
         </section></>
         }
